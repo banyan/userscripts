@@ -10,14 +10,20 @@
 (() => {
   const executeBrowserContext = (ids) => {
     ids.forEach((id) => {
-      window.eval(`toggleTBContent(${id})`) // works with GM4 as well
-    })
-  }
+      window.eval(`toggleTBContent(${id})`); // works with GM4 as well
+    });
+  };
 
-  const links = $X("//div[@class=\"refererlist\"]/descendant::li/descendant::a[1]")
-  const ids = links.filter(link => (
-    link.className !== 'self' && link.href.match(/^https:\/\/anond\.hatelabo\.jp/) // 今開いているエントリーのトラックバックは開かない
-  )).map(link => link.href.match(/\d+/))
+  const links = $X(
+    '//div[@class="refererlist"]/descendant::li/descendant::a[1]',
+  );
+  const ids = links
+    .filter(
+      (link) =>
+        link.className !== 'self' &&
+        link.href.match(/^https:\/\/anond\.hatelabo\.jp/), // 今開いているエントリーのトラックバックは開かない
+    )
+    .map((link) => link.href.match(/\d+/));
 
-  executeBrowserContext(ids)
-})()
+  executeBrowserContext(ids);
+})();
