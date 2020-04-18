@@ -1,0 +1,13 @@
+{
+  "name": "userscripts",
+  "version": "0.0.1",
+  "private": "true",
+  "repository": "https://github.com/banyan/userscripts",
+  "license": "MIT",
+  "scripts": {
+    "fmt": "prettier --write **/*.js"
+  },
+  "devDependencies": {
+    "prettier": "^2.0.4"
+  }
+}
