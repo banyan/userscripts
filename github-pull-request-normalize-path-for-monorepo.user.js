@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           github-pull-request-normalize-path-for-monorepo
 // @namespace      https://github.com/banyan/userscripts
-// @version        0.1
+// @version        0.2
 // @description    Omit `packages` and 'src' from the path to align with vscode multi root workspace
 // @match          https://github.com/*/*/pull/*
 // ==/UserScript==
