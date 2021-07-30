@@ -3,7 +3,7 @@
 // @namespace      https://github.com/banyan/userscripts
 // @version        0.1
 // @description    Copy artist name to clipboard on last.fm
-// @match          https://www.last.fm/user/*/library/artists
+// @match          https://www.last.fm/user/*/library/artists*
 // ==/UserScript==
 
 (() => {
