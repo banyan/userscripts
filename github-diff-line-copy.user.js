@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name           github-diff-line-copy.user.js
 // @namespace      https://github.com/banyan/userscripts
-// @version        0.2
-// @description    Copy filename and line number when clicking line numbers in GitHub diff view
+// @version        0.3
+// @description    Copy filename and line number(s) when clicking line numbers in GitHub diff view - supports range selection
 // @match          https://github.com/*/pull/*/files
 // @match          https://github.com/*/commit/*
 // @match          https://github.com/*/compare/*
@@ -10,6 +10,9 @@
 
 (() => {
   'use strict';
+
+  // Store the last clicked line for range selection
+  let lastClickedLine = null;
 
   function debounce(fn, waitMs) {
     let timeout;
@@ -78,6 +81,36 @@
     }, 2000);
   };
 
+  const getLineNumberFromElement = (element) => {
+    return parseInt(element.getAttribute('data-line-number'), 10);
+  };
+
+  const highlightRange = (startLine, endLine, fileContainer) => {
+    // Clear previous highlights
+    fileContainer.querySelectorAll('.line-copy-highlight').forEach(el => {
+      el.classList.remove('line-copy-highlight');
+    });
+
+    // Add highlight to range
+    const startNum = Math.min(startLine, endLine);
+    const endNum = Math.max(startLine, endLine);
+
+    for (let i = startNum; i <= endNum; i++) {
+      const lineElement = fileContainer.querySelector(
+        `.blob-num-addition.js-linkable-line-number[data-line-number="${i}"]`
+      );
+      if (lineElement) {
+        lineElement.classList.add('line-copy-highlight');
+      }
+    }
+  };
+
+  const clearHighlights = () => {
+    document.querySelectorAll('.line-copy-highlight').forEach(el => {
+      el.classList.remove('line-copy-highlight');
+    });
+  };
+
   const handleClick = async (e) => {
     const lineNum = e.target.closest(
       '.blob-num-addition.js-linkable-line-number',
@@ -87,12 +120,44 @@
     e.preventDefault();
     e.stopPropagation();
 
-    const lineNumber = lineNum.getAttribute('data-line-number');
+    const currentLineNumber = getLineNumberFromElement(lineNum);
     const filename = getFilename(lineNum);
+    const fileContainer = lineNum.closest('.file');
 
-    if (!lineNumber || !filename) return;
+    if (!currentLineNumber || !filename || !fileContainer) return;
 
-    const text = `${filename}:${lineNumber}`;
+    let text;
+
+    if (e.shiftKey && lastClickedLine && lastClickedLine.fileContainer === fileContainer) {
+      // Range selection
+      const startLine = lastClickedLine.lineNumber;
+      const endLine = currentLineNumber;
+      const minLine = Math.min(startLine, endLine);
+      const maxLine = Math.max(startLine, endLine);
+
+      text = `${filename}:${minLine}-${maxLine}`;
+
+      // Highlight the selected range
+      highlightRange(startLine, endLine, fileContainer);
+
+      // Don't update lastClickedLine for shift+click
+    } else {
+      // Single line selection
+      text = `${filename}:${currentLineNumber}`;
+
+      // Clear any previous highlights
+      clearHighlights();
+
+      // Highlight single line
+      lineNum.classList.add('line-copy-highlight');
+
+      // Update last clicked line
+      lastClickedLine = {
+        lineNumber: currentLineNumber,
+        fileContainer: fileContainer,
+        element: lineNum
+      };
+    }
 
     await copyToClipboard(text);
     showGitHubTooltip(lineNum, text);
@@ -100,6 +165,14 @@
 
   const attachListeners = () => {
     document.addEventListener('click', handleClick, true);
+
+    // Clear highlights when clicking elsewhere
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.blob-num-addition.js-linkable-line-number')) {
+        clearHighlights();
+        lastClickedLine = null;
+      }
+    });
   };
 
   const addStyles = () => {
@@ -108,9 +181,16 @@
             .blob-num-addition.js-linkable-line-number {
                 cursor: pointer !important;
                 position: relative;
+                user-select: none;
             }
             .blob-num-addition.js-linkable-line-number:hover {
                 background-color: rgba(40, 167, 69, 0.15) !important;
+            }
+
+            /* Highlight selected lines */
+            .blob-num-addition.js-linkable-line-number.line-copy-highlight {
+                background-color: rgba(40, 167, 69, 0.25) !important;
+                font-weight: bold;
             }
 
             /* Ensure tooltip displays properly */
@@ -153,6 +233,8 @@
 
   // Listen for GitHub's page transitions (pjax)
   document.addEventListener('pjax:end', () => {
+    clearHighlights();
+    lastClickedLine = null;
     observeContainer();
   });
 })();
