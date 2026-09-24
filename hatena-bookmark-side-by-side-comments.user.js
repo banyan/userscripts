@@ -71,6 +71,13 @@
       font-size: 15px;
       font-weight: bold;
     }
+    .banyan-dual-comments [data-sort="recent"] .banyan-also-popular {
+      opacity: 0.4;
+      transition: opacity 0.15s;
+    }
+    .banyan-dual-comments [data-sort="recent"] .banyan-also-popular:hover {
+      opacity: 1;
+    }
     @media (max-width: 800px) {
       .banyan-dual-comments .js-bookmarks-sort-panels {
         grid-template-columns: minmax(0, 1fr);
@@ -80,4 +87,24 @@
   `;
   document.head.append(style);
   root.classList.add('banyan-dual-comments');
+
+  // One bookmark per user per entry, so the user name identifies the comment.
+  const ITEM = '.js-bookmark-item[data-user-name]';
+  const markAlsoPopular = () => {
+    const popularUsers = new Set(
+      [...popular.querySelectorAll(ITEM)].map((el) => el.dataset.userName),
+    );
+    for (const el of recent.querySelectorAll(ITEM)) {
+      el.classList.toggle(
+        'banyan-also-popular',
+        popularUsers.has(el.dataset.userName),
+      );
+    }
+  };
+  markAlsoPopular();
+  // Both panels append more comments via pagination.
+  const observer = new MutationObserver(markAlsoPopular);
+  for (const panel of [popular, recent]) {
+    observer.observe(panel, { childList: true, subtree: true });
+  }
 })();
