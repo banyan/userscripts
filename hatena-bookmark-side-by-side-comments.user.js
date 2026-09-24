@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Hatena Bookmark Side-by-Side Comments
 // @namespace      https://github.com/banyan/
-// @version        1.1.0
+// @version        1.2.0
 // @description    はてなブックマークの注目コメントと新着コメントを並べて表示する
 // @match          https://b.hatena.ne.jp/entry/*
 // @run-at         document-end
