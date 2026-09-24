@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Hatena Bookmark Side-by-Side Comments
 // @namespace      https://github.com/banyan/
-// @version        1.2.0
+// @version        1.3.0
 // @description    はてなブックマークの注目コメントと新着コメントを並べて表示する
 // @match          https://b.hatena.ne.jp/entry/*
 // @run-at         document-end
@@ -72,11 +72,7 @@
       font-weight: bold;
     }
     .banyan-dual-comments [data-sort="recent"] .banyan-also-popular {
-      opacity: 0.4;
-      transition: opacity 0.15s;
-    }
-    .banyan-dual-comments [data-sort="recent"] .banyan-also-popular:hover {
-      opacity: 1;
+      display: none;
     }
     @media (max-width: 800px) {
       .banyan-dual-comments .js-bookmarks-sort-panels {
