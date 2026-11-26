@@ -1,7 +1,9 @@
 // ==UserScript==
 // @name           Yahoo! JAPAN Topics Only
 // @namespace      https://github.com/banyan/
-// @version        1.2.1
+// @version        1.2.2
+// @downloadURL    https://raw.githubusercontent.com/banyan/userscripts/master/yahoo-japan-topics-only.user.js
+// @updateURL      https://raw.githubusercontent.com/banyan/userscripts/master/yahoo-japan-topics-only.user.js
 // @description    Yahoo! JAPAN トップのニューストピックスだけを全カテゴリ2列に並べて表示する
 // @match          https://www.yahoo.co.jp/
 // @match          https://www.yahoo.co.jp/?*
