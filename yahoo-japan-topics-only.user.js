@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name           Yahoo! JAPAN Topics Only
 // @namespace      https://github.com/banyan/
-// @version        1.0.0
-// @description    Yahoo! JAPAN トップのニューストピックスだけを全カテゴリ縦に並べて表示する
+// @version        1.1.0
+// @description    Yahoo! JAPAN トップのニューストピックスだけを全カテゴリ一画面に並べて表示する
 // @match          https://www.yahoo.co.jp/
 // @match          https://www.yahoo.co.jp/?*
 // @run-at         document-end
@@ -17,6 +17,7 @@
     return;
   }
 
+  const MAIN_TAB = 'topics';
   const CATEGORIES = {
     topics: { label: '主要', url: 'https://news.yahoo.co.jp/topics/top-picks' },
     economy: {
@@ -122,7 +123,7 @@
 
   const renderLargeArticle = (large) =>
     el('a', { className: 'bn-large', href: large.link }, [
-      el('img', { src: large.image.url, alt: '', loading: 'lazy' }),
+      el('img', { src: large.image.url, alt: '' }),
       el('span', { className: 'bn-large-title', textContent: large.title }),
       el('span', {
         className: 'bn-meta',
@@ -132,23 +133,26 @@
 
   const renderFinance = (finance) =>
     el(
-      'dl',
+      'p',
       { className: 'bn-finance' },
-      Object.entries(finance).flatMap(([key, { value, delta }]) => {
+      Object.entries(finance).map(([key, { value, delta }]) => {
         const label = FINANCE_LABELS[key];
         if (!label) {
           throw new Error(`Yahoo topics: unknown finance key "${key}"`);
         }
-        const dd = el('dd', { textContent: value });
+        const item = el('span', { className: 'bn-finance-item' }, [
+          `${label} `,
+          el('b', { textContent: value }),
+        ]);
         if (delta) {
-          dd.append(
+          item.append(
             el('span', {
               className: delta.startsWith('-') ? 'bn-down' : 'bn-up',
               textContent: ` ${delta}`,
             }),
           );
         }
-        return [el('dt', { textContent: label }), dd];
+        return item;
       }),
     );
 
@@ -157,20 +161,29 @@
     if (!category) {
       throw new Error(`Yahoo topics: unknown tab "${tab.tabId}"`);
     }
+    const isMain = tab.tabId === MAIN_TAB;
     const body = el('div', { className: 'bn-body' }, [
       el('ul', { className: 'bn-list' }, tab.articles.map(renderArticle)),
     ]);
-    if (tab.largeArticle) {
+    // Only the main card has room for the photo article; the small cards
+    // stay text-only so all categories fit on one screen.
+    if (isMain && tab.largeArticle) {
       body.append(renderLargeArticle(tab.largeArticle));
-    } else if (tab.financeData) {
-      body.append(renderFinance(tab.financeData));
     }
-    return el('section', { className: 'bn-category' }, [
-      el('h2', {}, [
-        el('a', { href: category.url, textContent: category.label }),
-      ]),
-      body,
-    ]);
+    const section = el(
+      'section',
+      { className: isMain ? 'bn-category bn-main' : 'bn-category' },
+      [
+        el('h2', {}, [
+          el('a', { href: category.url, textContent: category.label }),
+        ]),
+        body,
+      ],
+    );
+    if (tab.financeData) {
+      section.append(renderFinance(tab.financeData));
+    }
+    return section;
   };
 
   const { tabs } = readStore().topics;
@@ -191,10 +204,14 @@
       }
       #${ROOT_ID} {
         box-sizing: border-box;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        align-items: start;
         width: 100%;
-        max-width: 760px;
+        max-width: 2400px;
         margin: 0 auto;
-        padding: 24px 16px 48px;
+        padding: 12px;
         font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
         color: #222;
       }
@@ -206,16 +223,16 @@
         text-decoration: underline;
       }
       #${ROOT_ID} .bn-category {
-        margin-bottom: 20px;
+        min-width: 0;
         background: #fff;
         border: 1px solid #b6c3e0;
       }
       #${ROOT_ID} h2 {
         margin: 0;
-        padding: 10px 16px;
+        padding: 5px 12px;
         background: #e8eefb;
         border-bottom: 1px solid #b6c3e0;
-        font-size: 16px;
+        font-size: 14px;
         font-weight: bold;
       }
       #${ROOT_ID} h2 a {
@@ -223,8 +240,8 @@
       }
       #${ROOT_ID} .bn-body {
         display: flex;
-        gap: 16px;
-        padding: 10px 16px 14px;
+        gap: 20px;
+        padding: 6px 12px 8px;
       }
       #${ROOT_ID} .bn-list {
         flex: 1 1 auto;
@@ -234,9 +251,9 @@
         list-style: none;
       }
       #${ROOT_ID} .bn-list li {
-        padding: 5px 0 5px 12px;
-        font-size: 16px;
-        line-height: 1.5;
+        padding: 2px 0 2px 11px;
+        font-size: 14px;
+        line-height: 1.45;
         position: relative;
       }
       #${ROOT_ID} .bn-list li::before {
@@ -246,13 +263,13 @@
       }
       #${ROOT_ID} .bn-badge {
         display: inline-block;
-        margin-left: 6px;
-        padding: 0 6px;
-        border-radius: 8px;
-        font-size: 11px;
+        margin-left: 5px;
+        padding: 0 5px;
+        border-radius: 7px;
+        font-size: 10px;
         font-weight: bold;
-        line-height: 16px;
-        vertical-align: 2px;
+        line-height: 14px;
+        vertical-align: 1px;
         color: #fff;
       }
       #${ROOT_ID} .bn-new {
@@ -262,30 +279,88 @@
         background: #e60033;
       }
       #${ROOT_ID} .bn-comments {
-        margin-left: 6px;
-        font-size: 13px;
+        margin-left: 5px;
+        font-size: 12px;
         color: #7a86a3;
       }
       #${ROOT_ID} .bn-comments::before {
         content: "💬";
         margin-right: 2px;
-        font-size: 11px;
+        font-size: 10px;
         filter: grayscale(1) opacity(0.7);
       }
-      #${ROOT_ID} .bn-large {
-        flex: 0 0 160px;
+      #${ROOT_ID} .bn-finance {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2px 12px;
+        margin: 0;
+        padding: 6px 12px;
+        border-top: 1px solid #e3e8f3;
+        font-size: 12px;
+        color: #555;
+      }
+      #${ROOT_ID} .bn-finance b {
+        color: #222;
+      }
+      #${ROOT_ID} .bn-up {
+        color: #d0021b;
+      }
+      #${ROOT_ID} .bn-down {
+        color: #1d8a3a;
+      }
+
+      /* The main topics card stands out by size, weight and photo, not color. */
+      #${ROOT_ID} .bn-main {
+        grid-column: span 2;
+        grid-row: span 2;
+        align-self: stretch;
         display: flex;
         flex-direction: column;
-        gap: 4px;
-        padding-top: 4px;
+        border-width: 2px;
+      }
+      #${ROOT_ID} .bn-main h2 {
+        padding: 8px 16px;
+        font-size: 20px;
+      }
+      #${ROOT_ID} .bn-main .bn-body {
+        flex: 1 1 auto;
+        padding: 10px 16px 14px;
+      }
+      /* Spread the headlines over the two rows the card spans. */
+      #${ROOT_ID} .bn-main .bn-list {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+      }
+      #${ROOT_ID} .bn-main .bn-list li {
+        padding: 5px 0 5px 14px;
+        font-size: 19px;
+        font-weight: bold;
+        line-height: 1.5;
+      }
+      #${ROOT_ID} .bn-main .bn-badge {
+        font-size: 11px;
+        line-height: 17px;
+        vertical-align: 3px;
+      }
+      #${ROOT_ID} .bn-main .bn-comments {
+        font-size: 14px;
+        font-weight: normal;
+      }
+      #${ROOT_ID} .bn-large {
+        flex: 0 0 34%;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding-top: 6px;
       }
       #${ROOT_ID} .bn-large img {
-        width: 160px;
-        height: 107px;
+        width: 100%;
+        aspect-ratio: 3 / 2;
         object-fit: cover;
       }
       #${ROOT_ID} .bn-large-title {
-        font-size: 15px;
+        font-size: 16px;
         line-height: 1.4;
       }
       #${ROOT_ID} .bn-meta {
@@ -293,34 +368,30 @@
         line-height: 1.4;
         color: #777;
       }
-      #${ROOT_ID} .bn-finance {
-        flex: 0 0 160px;
-        margin: 4px 0 0;
-        font-size: 13px;
-      }
-      #${ROOT_ID} .bn-finance dt {
-        color: #777;
-      }
-      #${ROOT_ID} .bn-finance dd {
-        margin: 0 0 8px;
-        font-size: 15px;
-        font-weight: bold;
-      }
-      #${ROOT_ID} .bn-up {
-        color: #d0021b;
-        font-size: 12px;
-      }
-      #${ROOT_ID} .bn-down {
-        color: #1d8a3a;
-        font-size: 12px;
-      }
-      @media (max-width: 600px) {
-        #${ROOT_ID} .bn-body {
-          flex-direction: column;
+
+      /* Main card spans 2x2, so 6 columns fit all categories in two rows. */
+      @media (min-width: 1800px) {
+        #${ROOT_ID} {
+          grid-template-columns: repeat(6, minmax(0, 1fr));
         }
-        #${ROOT_ID} .bn-large,
-        #${ROOT_ID} .bn-finance {
-          flex-basis: auto;
+      }
+      @media (max-width: 1100px) {
+        #${ROOT_ID} {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        #${ROOT_ID} .bn-main {
+          grid-row: auto;
+        }
+      }
+      @media (max-width: 640px) {
+        #${ROOT_ID} {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        #${ROOT_ID} .bn-main {
+          grid-column: auto;
+        }
+        #${ROOT_ID} .bn-main .bn-body {
+          flex-direction: column;
         }
       }
     `,
