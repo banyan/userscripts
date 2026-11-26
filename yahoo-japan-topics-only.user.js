@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name           Yahoo! JAPAN Topics Only
 // @namespace      https://github.com/banyan/
-// @version        1.2.0
-// @description    Yahoo! JAPAN トップのニューストピックスだけを全カテゴリ一画面に並べて表示する
+// @version        1.2.1
+// @description    Yahoo! JAPAN トップのニューストピックスだけを全カテゴリ2列に並べて表示する
 // @match          https://www.yahoo.co.jp/
 // @match          https://www.yahoo.co.jp/?*
 // @run-at         document-end
