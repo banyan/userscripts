@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Yahoo! JAPAN Topics Only
 // @namespace      https://github.com/banyan/
-// @version        1.2.2
+// @version        1.3.0
 // @downloadURL    https://raw.githubusercontent.com/banyan/userscripts/master/yahoo-japan-topics-only.user.js
 // @updateURL      https://raw.githubusercontent.com/banyan/userscripts/master/yahoo-japan-topics-only.user.js
 // @description    Yahoo! JAPAN トップのニューストピックスだけを全カテゴリ2列に並べて表示する
@@ -20,16 +20,14 @@
   }
 
   const MAIN_TAB = 'topics';
+  // Display order: main first, then two per row (経済 IT / スポーツ 国内 / ...).
   const CATEGORIES = {
     topics: { label: '主要', url: 'https://news.yahoo.co.jp/topics/top-picks' },
     economy: {
       label: '経済',
       url: 'https://news.yahoo.co.jp/categories/business',
     },
-    entertainment: {
-      label: 'エンタメ',
-      url: 'https://news.yahoo.co.jp/categories/entertainment',
-    },
+    computer: { label: 'IT', url: 'https://news.yahoo.co.jp/categories/it' },
     sports: {
       label: 'スポーツ',
       url: 'https://news.yahoo.co.jp/categories/sports',
@@ -39,7 +37,10 @@
       url: 'https://news.yahoo.co.jp/categories/domestic',
     },
     world: { label: '国際', url: 'https://news.yahoo.co.jp/categories/world' },
-    computer: { label: 'IT', url: 'https://news.yahoo.co.jp/categories/it' },
+    entertainment: {
+      label: 'エンタメ',
+      url: 'https://news.yahoo.co.jp/categories/entertainment',
+    },
     science: {
       label: '科学',
       url: 'https://news.yahoo.co.jp/categories/science',
@@ -189,11 +190,21 @@
   };
 
   const { tabs } = readStore().topics;
-  if (!tabs?.length) {
-    throw new Error('Yahoo topics: no tabs in store');
+  const tabById = new Map(tabs.map((tab) => [tab.tabId, tab]));
+  for (const id of tabById.keys()) {
+    if (!(id in CATEGORIES)) {
+      throw new Error(`Yahoo topics: unknown tab "${id}"`);
+    }
   }
+  const orderedTabs = Object.keys(CATEGORIES).map((id) => {
+    const tab = tabById.get(id);
+    if (!tab) {
+      throw new Error(`Yahoo topics: tab "${id}" missing from store`);
+    }
+    return tab;
+  });
   // Build everything before hiding the page, so a parse failure leaves it intact.
-  const root = el('main', { id: ROOT_ID }, tabs.map(renderTab));
+  const root = el('main', { id: ROOT_ID }, orderedTabs.map(renderTab));
 
   const style = el('style', {
     textContent: `
