@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Yahoo! JAPAN Topics Only
 // @namespace      https://github.com/banyan/
-// @version        1.1.0
+// @version        1.2.0
 // @description    Yahoo! JAPAN トップのニューストピックスだけを全カテゴリ一画面に並べて表示する
 // @match          https://www.yahoo.co.jp/
 // @match          https://www.yahoo.co.jp/?*
@@ -202,16 +202,15 @@
       body > :not(#${ROOT_ID}) {
         display: none !important;
       }
+      /* Two columns of cards as wide as a single readable column. */
       #${ROOT_ID} {
         box-sizing: border-box;
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 12px;
+        grid-template-columns: repeat(2, minmax(0, 728px));
+        justify-content: center;
+        gap: 20px;
         align-items: start;
-        width: 100%;
-        max-width: 2400px;
-        margin: 0 auto;
-        padding: 12px;
+        padding: 24px 16px 48px;
         font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
         color: #222;
       }
@@ -229,10 +228,10 @@
       }
       #${ROOT_ID} h2 {
         margin: 0;
-        padding: 5px 12px;
+        padding: 10px 16px;
         background: #e8eefb;
         border-bottom: 1px solid #b6c3e0;
-        font-size: 14px;
+        font-size: 16px;
         font-weight: bold;
       }
       #${ROOT_ID} h2 a {
@@ -240,8 +239,8 @@
       }
       #${ROOT_ID} .bn-body {
         display: flex;
-        gap: 20px;
-        padding: 6px 12px 8px;
+        gap: 24px;
+        padding: 10px 16px 14px;
       }
       #${ROOT_ID} .bn-list {
         flex: 1 1 auto;
@@ -251,9 +250,9 @@
         list-style: none;
       }
       #${ROOT_ID} .bn-list li {
-        padding: 2px 0 2px 11px;
-        font-size: 14px;
-        line-height: 1.45;
+        padding: 5px 0 5px 12px;
+        font-size: 16px;
+        line-height: 1.5;
         position: relative;
       }
       #${ROOT_ID} .bn-list li::before {
@@ -263,13 +262,13 @@
       }
       #${ROOT_ID} .bn-badge {
         display: inline-block;
-        margin-left: 5px;
-        padding: 0 5px;
-        border-radius: 7px;
-        font-size: 10px;
+        margin-left: 6px;
+        padding: 0 6px;
+        border-radius: 8px;
+        font-size: 11px;
         font-weight: bold;
-        line-height: 14px;
-        vertical-align: 1px;
+        line-height: 16px;
+        vertical-align: 2px;
         color: #fff;
       }
       #${ROOT_ID} .bn-new {
@@ -279,24 +278,25 @@
         background: #e60033;
       }
       #${ROOT_ID} .bn-comments {
-        margin-left: 5px;
-        font-size: 12px;
+        margin-left: 6px;
+        font-size: 13px;
+        font-weight: normal;
         color: #7a86a3;
       }
       #${ROOT_ID} .bn-comments::before {
         content: "💬";
         margin-right: 2px;
-        font-size: 10px;
+        font-size: 11px;
         filter: grayscale(1) opacity(0.7);
       }
       #${ROOT_ID} .bn-finance {
         display: flex;
         flex-wrap: wrap;
-        gap: 2px 12px;
+        gap: 2px 16px;
         margin: 0;
-        padding: 6px 12px;
+        padding: 8px 16px;
         border-top: 1px solid #e3e8f3;
-        font-size: 12px;
+        font-size: 13px;
         color: #555;
       }
       #${ROOT_ID} .bn-finance b {
@@ -309,46 +309,31 @@
         color: #1d8a3a;
       }
 
-      /* The main topics card stands out by size, weight and photo, not color. */
+      /*
+       * The main topics card spans both columns and stands out by size,
+       * weight and photo, not color.
+       */
       #${ROOT_ID} .bn-main {
-        grid-column: span 2;
-        grid-row: span 2;
-        align-self: stretch;
-        display: flex;
-        flex-direction: column;
+        grid-column: 1 / -1;
         border-width: 2px;
       }
       #${ROOT_ID} .bn-main h2 {
-        padding: 8px 16px;
-        font-size: 20px;
+        padding: 10px 20px;
+        font-size: 22px;
       }
       #${ROOT_ID} .bn-main .bn-body {
-        flex: 1 1 auto;
-        padding: 10px 16px 14px;
-      }
-      /* Spread the headlines over the two rows the card spans. */
-      #${ROOT_ID} .bn-main .bn-list {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-around;
+        padding: 12px 20px 16px;
       }
       #${ROOT_ID} .bn-main .bn-list li {
-        padding: 5px 0 5px 14px;
-        font-size: 19px;
+        padding: 6px 0 6px 14px;
+        font-size: 20px;
         font-weight: bold;
-        line-height: 1.5;
-      }
-      #${ROOT_ID} .bn-main .bn-badge {
-        font-size: 11px;
-        line-height: 17px;
-        vertical-align: 3px;
       }
       #${ROOT_ID} .bn-main .bn-comments {
         font-size: 14px;
-        font-weight: normal;
       }
       #${ROOT_ID} .bn-large {
-        flex: 0 0 34%;
+        flex: 0 0 360px;
         display: flex;
         flex-direction: column;
         gap: 6px;
@@ -369,29 +354,17 @@
         color: #777;
       }
 
-      /* Main card spans 2x2, so 6 columns fit all categories in two rows. */
-      @media (min-width: 1800px) {
+      @media (max-width: 1000px) {
         #${ROOT_ID} {
-          grid-template-columns: repeat(6, minmax(0, 1fr));
-        }
-      }
-      @media (max-width: 1100px) {
-        #${ROOT_ID} {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-        #${ROOT_ID} .bn-main {
-          grid-row: auto;
+          grid-template-columns: minmax(0, 728px);
         }
       }
       @media (max-width: 640px) {
-        #${ROOT_ID} {
-          grid-template-columns: minmax(0, 1fr);
-        }
-        #${ROOT_ID} .bn-main {
-          grid-column: auto;
-        }
         #${ROOT_ID} .bn-main .bn-body {
           flex-direction: column;
+        }
+        #${ROOT_ID} .bn-large {
+          flex-basis: auto;
         }
       }
     `,
